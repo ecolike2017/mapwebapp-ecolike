@@ -64,10 +64,54 @@
                         },
                         map: ECOLIKE.map
                       });
+
+                      marker.addListener('click', function() {
+                        showInfoWindow(marker, oneLike);
+                      });
                     }
                   });
                   console.log(data);
                 });
+              }
+
+              function showInfoWindow(marker, activityData) {
+                console.log('activityData', activityData);
+                var tweetText = activityData.display_text_range ? activityData.text.substring(activityData.display_text_range[0], activityData.display_text_range[1]) : activityData.text;
+                var mediaContent = '';
+
+                if (activityData.entities.media &&
+                    activityData.entities.media.length > 0 &&
+                    activityData.entities.media[0].type === 'photo') {
+                  mediaContent = '<div class="tweetPhoto">'+
+                    '<img src="'+activityData.entities.media[0].media_url_https+'"/>'+
+                    '</div>';
+                }
+
+                var contentString = '<div id="content">'+
+                  '<div class="profileImage">'+
+                  '  <img src="'+activityData.user.profile_image_url_https+'">'+
+                  '</div>'+
+
+                  '<div class="nameAndTweet">'+
+                  '  <span class="username">'+activityData.user.screen_name+'</span>'+
+                  '  <div class="tweetText">'+
+                  tweetText+
+                  '  </div>'+
+                  '</div>'+
+                  '<div class="clear">&nbsp;</div>'+
+
+                  mediaContent+
+                  // if media entity, type=photo
+                  '<h3 id="firstHeading" class="firstHeading">Eco-rating</h3>'+
+                  '<div id="bodyContent">'+
+                  '  <p><b>TBD</b>, lorem ipsum.</p>'+
+                  '</div>'+
+                  '</div>';
+
+                var infowindow = new google.maps.InfoWindow({
+                  content: contentString
+                });
+                infowindow.open(ECOLIKE.map, marker);
               }
             </script>
             <script async defer

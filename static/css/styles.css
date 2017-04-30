@@ -3,3 +3,21 @@
   width: 100%;
   background-color: grey;
 }
+#content .profileImage,
+#content .nameAndTweet {
+  float: left;
+}
+#content .nameAndTweet {
+  margin-left: 10px;
+}
+#content .nameAndTweet .username {
+  font-weight: bold;
+}
+#content .clear,
+#content .tweetPhoto {
+  clear: both;
+}
+#content .tweetPhoto img {
+  max-width: 400px;
+  max-height: 400px;
+}
