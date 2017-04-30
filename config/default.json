@@ -1,0 +1,9 @@
+{
+  "db": {
+    "host": "ds111718.mlab.com",
+    "port": "11718",
+    "name": "eco-likes-2017",
+    "username": "eco",
+    "password": "__IN_LOCAL_CONFIG_JSON__"
+  }
+}

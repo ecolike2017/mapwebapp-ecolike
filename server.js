@@ -4,7 +4,6 @@ var app = express();
 var db = require('./lib/db');
 
 app.set('view engine', 'ejs');
-
 app.use('/static', express.static('static'));
 
 
@@ -13,6 +12,9 @@ app.get('/', function(req, res) {
     res.render('pages/index');
 });
 
+//
+// AJAX endpoints
+//
 app.get('/api/ecolikes', function(req, res) {
   db.getEcoLikes(function(err, docs) {
     if (err) {
@@ -21,23 +23,7 @@ app.get('/api/ecolikes', function(req, res) {
 
     res.status(200).json(docs);
   });
-  // var ecolikes = {
-  //   ecolikes: [
-  //     {
-  //       foo: 'bar'
-  //     },
-  //     {
-  //       foo: 'baz'
-  //     }
-  //   ]
-  // }
-  // res.status(200).json(ecolikes);
 });
-
-// about page
-// app.get('/about', function(req, res) {
-//     res.render('pages/about');
-// });
 
 app.listen(8080);
 console.log('8080 is the magic port');
