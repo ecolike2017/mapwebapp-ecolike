@@ -126,10 +126,13 @@
               function createMapMarkers() {
                 ECOLIKE.activityData.forEach(function(oneLike) {
                   var coords = coordsFromActivity(oneLike);
+                  var image = 'https://eco-like.herokuapp.com/static/img/green_leaf_nature_plant_tree.png';
+
                   if (coords) {
                     var marker = new google.maps.Marker({
                       position: coords,
-                      map: ECOLIKE.map
+                      map: ECOLIKE.map,
+                      icon: image
                     });
 
                     marker.addListener('click', function() {
