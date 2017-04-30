@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="container">
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <main>
+        <div class="jumbotron">
+            <h1>This is fine</h1>
+            <div id="map"></div>
+            <script>
+              var ECOLIKE = {};
+
+              function initMap() {
+                ECOLIKE.geocoder = new google.maps.Geocoder();
+
+                // if coordinates passed in URL, use those.
+                // else, geocode the Palo Alto address
+                codeAddress('Palo Alto, CA', function(err, location) {
+                  if (err) {
+                    console.log(err);
+                    location = {lat: -25.363, lng: 131.044};
+                  }
+
+                  ECOLIKE.map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 12,
+                    center: location
+                  });
+
+                  // Load EcoLike markers!
+                  loadEcoLikes();
+
+                });
+              }
+
+              function codeAddress(address, callback) {
+                ECOLIKE.geocoder.geocode( { 'address': address }, function(results, status) {
+                  var errMsg;
+                  if (status == 'OK') {
+                    callback(null, results[0].geometry.location);
+                  } else {
+                    errMsg = 'Geocode was not successful for the following reason: ' + status;
+                    callback(new Error(errMsg));
+                  }
+                });
+              }
+
+              function loadEcoLikes() {
+                $.get('/api/ecolikes', function(data) {
+                  data.forEach(function(oneLike) {
+                    if (oneLike.coordinates && oneLike.coordinates.type === 'Point') {
+                      // var location = {lat: -25.363, lng: 131.044};
+
+                      var marker = new google.maps.Marker({
+                        position: {
+                          lat: oneLike.coordinates.coordinates[1],
+                          lng: oneLike.coordinates.coordinates[0]
+                        },
+                        map: ECOLIKE.map
+                      });
+                    }
+                  });
+                  console.log(data);
+                });
+              }
+            </script>
+            <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjJoTBPnabLs9mn3BbOUQtPURdG6U51iA&callback=initMap">
+            </script>
+        </div>
+    </main>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
