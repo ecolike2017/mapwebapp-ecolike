@@ -53,7 +53,11 @@
 
               function determineMapCenterAndLoadMap() {
                 // default center location: Palo Alto, CA
-                var center = {lat: 37.407581, lng: -122.1456352};
+                // var center = {lat: 37.407581, lng: -122.1456352};
+
+                // default center of atlantic
+                var center = {lat: 47.7807162, lng: -52.4482606};
+                var zoom = 2;
 
                 if (ECOLIKE.activityId) {
                   // loop through data to find lat/lng center
@@ -62,14 +66,19 @@
                     if (oneActivity._id === ECOLIKE.activityId &&
                         coordsFromActivity(oneActivity) !== null) {
                       center = coordsFromActivity(oneActivity);
+                      zoom = 12;
                       break;
                     }
                   }
                 }
 
                 ECOLIKE.map = new google.maps.Map(document.getElementById('map'), {
-                  zoom: 12,
+                  zoom: zoom,
                   center: center
+                });
+
+                google.maps.event.addListener(ECOLIKE.map, "click", function(event) {
+                  closeInfoWindow();
                 });
 
                 createMapMarkers(ECOLIKE.map);
@@ -96,6 +105,13 @@
                   console.log(data);
                   callback();
                 });
+              }
+
+              function closeInfoWindow() {
+                if (ECOLIKE.infoWindow) {
+                  ECOLIKE.infoWindow.close();
+                  ECOLIKE.infoWindow = null;
+                }
               }
 
               function coordsFromActivity(oneActivity) {
@@ -190,10 +206,13 @@
                   '</div>'+
                   '</div>';
 
-                var infowindow = new google.maps.InfoWindow({
+                // Close any existing windows
+                closeInfoWindow();
+                
+                ECOLIKE.infoWindow = new google.maps.InfoWindow({
                   content: contentString
                 });
-                infowindow.open(map, marker);
+                ECOLIKE.infoWindow.open(map, marker);
               }
 
               function createHeatMap(map) {
