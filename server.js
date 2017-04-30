@@ -4,6 +4,8 @@ var app = express();
 var config = require('config');
 var db = require('./lib/db');
 
+var port = process.env.PORT || config.get('server.port');
+
 app.set('view engine', 'ejs');
 app.use('/static', express.static('static'));
 
@@ -26,5 +28,5 @@ app.get('/api/ecolikes', function(req, res) {
   });
 });
 
-app.listen(config.get('server.port'));
-console.log('%s is the magic port', config.get('server.port'));
+app.listen(port);
+console.log('%s is the magic port', port);
