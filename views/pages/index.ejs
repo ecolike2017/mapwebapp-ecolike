@@ -16,27 +16,63 @@
             <div id="map"></div>
             <script>
               var ECOLIKE = {};
+              <% if (activityId) {%>
+              ECOLIKE.activityId="<%= activityId %>"
+              <% } %>
 
               function initMap() {
                 ECOLIKE.geocoder = new google.maps.Geocoder();
 
-                // if coordinates passed in URL, use those.
-                // else, geocode the Palo Alto address
-                codeAddress('Palo Alto, CA', function(err, location) {
+                // Load EcoLike data!
+                loadEcoLikes(function(err) {
                   if (err) {
-                    console.log(err);
-                    location = {lat: -25.363, lng: 131.044};
+                    console.log('Error loading EcoLike data from backend. :(');
+                    return;
                   }
 
-                  ECOLIKE.map = new google.maps.Map(document.getElementById('map'), {
-                    zoom: 12,
-                    center: location
-                  });
-
-                  // Load EcoLike markers!
-                  loadEcoLikes();
-
+                  determineMapCenterAndLoadMap();
                 });
+
+
+                // if coordinates passed in URL, use those.
+                // else, geocode the Palo Alto address
+                // codeAddress('Palo Alto, CA', function(err, location) {
+                //   if (err) {
+                //     console.log(err);
+                //     location = {lat: -25.363, lng: 131.044};
+                //   }
+                //
+                //   ECOLIKE.map = new google.maps.Map(document.getElementById('map'), {
+                //     zoom: 12,
+                //     center: location
+                //   });
+                //
+                //   createMapMarkers();
+                // });
+              }
+
+              function determineMapCenterAndLoadMap() {
+                // default center location: Palo Alto, CA
+                var center = {lat: 37.407581, lng: -122.1456352};
+
+                if (ECOLIKE.activityId) {
+                  // loop through data to find lat/lng center
+                  for (var idx=0; idx < ECOLIKE.activityData.length; idx++) {
+                    var oneActivity = ECOLIKE.activityData[idx];
+                    if (oneActivity._id === ECOLIKE.activityId &&
+                        coordsFromActivity(oneActivity) !== null) {
+                      center = coordsFromActivity(oneActivity);
+                      break;
+                    }
+                  }
+                }
+
+                ECOLIKE.map = new google.maps.Map(document.getElementById('map'), {
+                  zoom: 12,
+                  center: center
+                });
+
+                createMapMarkers();
               }
 
               function codeAddress(address, callback) {
@@ -51,26 +87,43 @@
                 });
               }
 
-              function loadEcoLikes() {
+              function loadEcoLikes(callback) {
                 $.get('/api/ecolikes', function(data) {
-                  data.forEach(function(oneLike) {
-                    if (oneLike.coordinates && oneLike.coordinates.type === 'Point') {
-                      // var location = {lat: -25.363, lng: 131.044};
-
-                      var marker = new google.maps.Marker({
-                        position: {
-                          lat: oneLike.coordinates.coordinates[1],
-                          lng: oneLike.coordinates.coordinates[0]
-                        },
-                        map: ECOLIKE.map
-                      });
-
-                      marker.addListener('click', function() {
-                        showInfoWindow(marker, oneLike);
-                      });
-                    }
-                  });
+                  ECOLIKE.activityData = data;
                   console.log(data);
+                  callback();
+                });
+              }
+
+              function coordsFromActivity(oneActivity) {
+                if (oneActivity.geo && oneActivity.geo.type === 'Point') {
+                  return {
+                    lat: oneActivity.geo.coordinates[0],
+                    lng: oneActivity.geo.coordinates[1]
+                  };
+                }
+                return null;
+              }
+
+              function createMapMarkers() {
+                ECOLIKE.activityData.forEach(function(oneLike) {
+                  var coords = coordsFromActivity(oneLike);
+                  if (coords) {
+                    var marker = new google.maps.Marker({
+                      position: coords,
+                      map: ECOLIKE.map
+                    });
+
+                    marker.addListener('click', function() {
+                      showInfoWindow(marker, oneLike);
+                    });
+
+                    // Automatically open the info window if an activity was passed
+                    // in as a query param.
+                    if (ECOLIKE.activityId && oneLike._id === ECOLIKE.activityId) {
+                      showInfoWindow(marker, oneLike);
+                    }
+                  }
                 });
               }
 

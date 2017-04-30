@@ -12,7 +12,7 @@ app.use('/static', express.static('static'));
 
 // index page
 app.get('/', function(req, res) {
-    res.render('pages/index');
+    res.render('pages/index', {activityId: req.query.activity});
 });
 
 //
