@@ -72,7 +72,10 @@
                   center: center
                 });
 
-                createMapMarkers();
+                createMapMarkers(ECOLIKE.map);
+                setTimeout(function() {
+                  createHeatMap(ECOLIKE.map);
+                }, 50);
               }
 
               function codeAddress(address, callback) {
@@ -123,35 +126,37 @@
                 return null;
               }
 
-              function createMapMarkers() {
+              function createMapMarkers(map) {
                 ECOLIKE.activityData.forEach(function(oneLike) {
                   var coords = coordsFromActivity(oneLike);
+                  // https://www.iconfinder.com/icons/307971/bio_eco_energy_farmer_flower_green_leaf_nature_plant_sheet_tree_icon
                   var image = 'https://eco-like.herokuapp.com/static/img/green_leaf_nature_plant_tree.png';
 
                   if (coords) {
                     var marker = new google.maps.Marker({
                       position: coords,
-                      map: ECOLIKE.map,
+                      map: map,
                       icon: image
                     });
 
                     marker.addListener('click', function() {
-                      showInfoWindow(marker, oneLike);
+                      showInfoWindow(map, marker, oneLike);
                     });
 
                     // Automatically open the info window if an activity was passed
                     // in as a query param.
                     if (ECOLIKE.activityId && oneLike._id === ECOLIKE.activityId) {
-                      showInfoWindow(marker, oneLike);
+                      showInfoWindow(map, marker, oneLike);
                     }
                   }
                 });
               }
 
-              function showInfoWindow(marker, activityData) {
+              function showInfoWindow(map, marker, activityData) {
                 console.log('activityData', activityData);
                 var tweetText = activityData.display_text_range ? activityData.text.substring(activityData.display_text_range[0], activityData.display_text_range[1]) : activityData.text;
                 var mediaContent = '';
+                var ecoRating = 80;
 
                 if (activityData.entities.media &&
                     activityData.entities.media.length > 0 &&
@@ -159,7 +164,10 @@
                   mediaContent = '<div class="tweetPhoto">'+
                     '<img src="'+activityData.entities.media[0].media_url_https+'"/>'+
                     '</div>';
+                  ecoRating += 10;
                 }
+                ecoRating += getRandomInt(0, 10);
+
 
                 var contentString = '<div id="content">'+
                   '<div class="profileImage">'+
@@ -176,7 +184,7 @@
 
                   mediaContent+
                   // if media entity, type=photo
-                  '<h3 id="firstHeading" class="firstHeading">Eco-rating</h3>'+
+                  '<h3 id="firstHeading" class="firstHeading">Eco-rating: '+ecoRating+'</h3>'+
                   '<div id="bodyContent">'+
                   '  <p><b>TBD</b>, lorem ipsum.</p>'+
                   '</div>'+
@@ -185,11 +193,50 @@
                 var infowindow = new google.maps.InfoWindow({
                   content: contentString
                 });
-                infowindow.open(ECOLIKE.map, marker);
+                infowindow.open(map, marker);
+              }
+
+              function createHeatMap(map) {
+                var heatmapData = [];
+                var HEATMAP_NUM = 8;
+
+                var bounds = map.getBounds();
+                var nePoint = bounds.getNorthEast();
+                var swPoint = bounds.getSouthWest();
+
+                for (var i = 0; i < HEATMAP_NUM; i++) {
+                  // var coords = results.features[i].geometry.coordinates;
+                  var lat = getRandomArbitrary(swPoint.lat(), nePoint.lat());
+                  var lng = getRandomArbitrary(swPoint.lng(), nePoint.lng());
+                  var latLng = new google.maps.LatLng(lat, lng);
+                  var magnitude = getRandomArbitrary(1, 10);
+                  var weightedLoc = {
+                    location: latLng,
+                    weight: magnitude
+                  };
+                  console.log('heat data', lat, lng, weightedLoc);
+                  heatmapData.push(weightedLoc);
+                }
+                var heatmap = new google.maps.visualization.HeatmapLayer({
+                  data: heatmapData,
+                  dissipating: false,
+                  map: map
+                });
+
+              }
+
+              function getRandomArbitrary(min, max) {
+                return (Math.random() * (max - min)) + min;
+              }
+
+              function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min)) + min;
               }
             </script>
             <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjJoTBPnabLs9mn3BbOUQtPURdG6U51iA&callback=initMap">
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjJoTBPnabLs9mn3BbOUQtPURdG6U51iA&libraries=visualization&callback=initMap">
             </script>
         </div>
     </main>
