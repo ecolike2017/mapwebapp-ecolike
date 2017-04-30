@@ -102,6 +102,24 @@
                     lng: oneActivity.geo.coordinates[1]
                   };
                 }
+                if (oneActivity.place &&
+                    oneActivity.place.bounding_box &&
+                    oneActivity.place.bounding_box.type === 'Polygon' &&
+                    oneActivity.place.bounding_box.coordinates &&
+                    oneActivity.place.bounding_box.coordinates.length === 1) {
+                      var latTotal = 0;
+                      var lngTotal = 0;
+                      var allCoords = oneActivity.place.bounding_box.coordinates[0];
+                      for (var idx=0; idx < allCoords.length; idx++) {
+                        var coord = allCoords[idx];
+                        latTotal += coord[1];
+                        lngTotal += coord[0];
+                      }
+                      return {
+                        lat: latTotal / allCoords.length,
+                        lng: lngTotal / allCoords.length
+                      };
+                    }
                 return null;
               }
 
